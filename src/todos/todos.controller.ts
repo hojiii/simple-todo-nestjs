@@ -8,15 +8,21 @@ import {
   ParseIntPipe,
   HttpCode,
   HttpStatus,
-  Res,
+  // Res,
   HttpException,
+  UseInterceptors,
 } from '@nestjs/common';
 import { TodosService } from './todos.service';
 import { UpdateTodoDto } from './dto/update-todo.dto';
-import { Response } from 'express';
+// import { Response } from 'express';
 import { CreateTodoDto } from './dto/create-todo.dto';
+import { LoggingInterceptor } from './interceptors/logging-interceptor';
+import { ResponseMsg } from './decorators/response-message-decorator';
+import { ResponseTransformInterceptor } from './interceptors/response-transfrom-interceptor';
+@UseInterceptors(LoggingInterceptor)
 //서버 루트/todos
 @Controller('todos')
+@UseInterceptors(ResponseTransformInterceptor)
 export class TodosController {
   constructor(private readonly todosService: TodosService) {}
 
@@ -38,28 +44,23 @@ export class TodosController {
 
   @Post()
   @HttpCode(HttpStatus.OK)
+  @ResponseMsg('성공적으로 할일이 추가되었습니다.')
   async create(@Body() createTodoDto: CreateTodoDto) {
     const createdTodo = await this.todosService.create(createTodoDto);
-    return {
-      message: '성공적으로 할일이 추가되었습니다.',
-      statusCode: 200,
-      data: createdTodo,
-    };
+    return createdTodo;
   }
 
   @Get()
   @HttpCode(HttpStatus.OK)
+  @ResponseMsg('성공적으로 할일이 모두 가져왔습니다.')
   async findAll() {
     const fetchedTodos = await this.todosService.findAll();
-    return {
-      message: '성공적으로 할일이 모두 가져왔습니다..',
-      statusCode: 200,
-      data: fetchedTodos,
-    };
+    return fetchedTodos;
   }
 
   @Get(':id')
   @HttpCode(HttpStatus.OK)
+  @ResponseMsg('성공적으로 해당 할일을 가져왔습니다.')
   async findOne(@Param('id', ParseIntPipe) id: number) {
     const foundTodo = await this.todosService.findOne(+id);
     if (foundTodo === null) {
@@ -68,15 +69,12 @@ export class TodosController {
         HttpStatus.NOT_FOUND,
       );
     }
-    return {
-      message: '성공적으로 해당 할일을 가져왔습니다..',
-      statusCode: 200,
-      data: foundTodo,
-    };
+    return foundTodo;
   }
 
   @Post(':id')
   @HttpCode(HttpStatus.OK)
+  @ResponseMsg('해당 할일이 성공적으로 업데이트 되었습니다.')
   async update(@Param('id') id: string, @Body() updateTodoDto: UpdateTodoDto) {
     const foundTodo = await this.todosService.findOne(+id);
     if (foundTodo === null) {
@@ -86,15 +84,12 @@ export class TodosController {
       );
     }
     const updatedTodo = await this.todosService.update(+id, updateTodoDto);
-    return {
-      message: '해당 할일이 성공적으로 업데이트 되었습니다.',
-      statusCode: 200,
-      data: updatedTodo,
-    };
+    return updatedTodo;
   }
 
   @Delete(':id')
   @HttpCode(HttpStatus.OK)
+  @ResponseMsg('해당 할일이 성공적으로 삭제 되었습니다.')
   async remove(@Param('id') id: string) {
     const foundTodo = await this.todosService.findOne(+id);
     if (foundTodo === null) {
@@ -104,10 +99,6 @@ export class TodosController {
       );
     }
     const deletedTodo = await this.todosService.remove(+id);
-    return {
-      message: '해당 할일이 성공적으로 삭제 되었습니다.',
-      statusCode: 200,
-      data: deletedTodo,
-    };
+    return deletedTodo;
   }
 }

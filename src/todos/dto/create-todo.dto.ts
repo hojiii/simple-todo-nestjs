@@ -1,6 +1,14 @@
+import { ApiProperty } from '@nestjs/swagger';
 import { IsString, IsBoolean, MinLength, MaxLength } from 'class-validator';
 
 export class CreateTodoDto {
+  @ApiProperty({
+    required: true,
+    type: Boolean,
+    description: '할일 완료 여부입니다..',
+    example: false,
+    default: false,
+  })
   @IsString({
     message: '제목은 문자열만 가능합니다.',
   })
